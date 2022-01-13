@@ -1,0 +1,24 @@
+{
+	"name": "notitg-init",
+	"version": "1.0.0",
+	"description": "NotITG Template Initializer",
+	"main": "index.js",
+	"author": "Jaezmien Naejara",
+	"license": "MIT",
+	"bin": {
+		"notitg-init": "./src/index.js"
+	},
+	"scripts": {
+		"start": "node ./src/index.js"
+	},
+	"dependencies": {
+		"gitly": "^2.1.5",
+		"minimist": "^1.2.5",
+		"prompts": "^2.4.2"
+	},
+	"devDependencies": {
+		"eslint": "^8.6.0",
+		"kolorist": "^1.5.1",
+		"typescript": "^4.5.4"
+	}
+}

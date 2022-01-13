@@ -1,0 +1,352 @@
+<ActorFrame
+InitCommand="%function(self)
+	songName = GAMESTATE:GetCurrentSong():GetSongDir();
+	
+	m_bl = 60/145 --use this to define length of a beat for use in the rest of the song
+	sw = SCREEN_WIDTH
+	sh = SCREEN_HEIGHT --shortcuts
+	
+	function Plr(pn)
+		return _G['P'..pn]
+	end
+end"
+><children>
+	<Layer
+		Type="Quad"
+		InitCommand="hidden,1"
+		OnCommand="sleep,1000"
+	/>
+	
+	<Layer File="modhelpers" />
+	<Layer File="easing" />
+	
+	<Layer
+		Type="ActorFrame"
+		InitCommand="%function(self)
+		
+			checked = false;
+		
+			---------------------------------------------------------
+			---------DOCUMENTATION-----------------------------------
+			---------------------------------------------------------
+			
+			--function perframe( beat, endBeat )
+				--return true if the current beat is between 'beat' and 'endBeat'
+			
+			--function mod_shader(beat,key,which)
+				--turn on shader key at specified beat (up to 10 keys available, defined by 'which' = 0-9
+				
+			--function mod_insert(beat,len,mod,len_or_end,pn)
+				--insert mod into beat mods table
+			--function mod_insert2(time,len,mod,len_or_end,pn)
+				--insert mod into time mods table
+			--function mod_ease(beat, len, start_strength, end_strength, mod, len_or_end, ease_type, pn, sustain, opt1, opt2)
+				--insert mod into ease mods table
+			--function mod_perframe(start, end, function(beat))
+				--insert function into perframe reader
+				
+			--function mod_message(beat,msg,persistent)
+				--insert something into the actions table.
+				--msg can also be a function. If string, a message gets broadcast at that beat
+				--if 'persistent' is true, message will run even if editor starts at a beat past it
+				
+			--function mod_blacklist(t,n)
+				--check if number n occurs in table t
+				--useful for doing 'every beat EXCEPT the contents of t'
+				
+			--function simple_m0d(beat,strength,mult,mod)
+			--function simple_m0d2(beat,strength,mult,mod,pn)
+			--function simple_m0d3(beat,strength,duration,bpm,mod,pn)
+				--activate mods at specific beat but also deactivate them
+				
+			--function mod_wiggle(beat,num,div,amt,speed,mod,pn,first)
+				--alternates a mod back and forth before resetting to 0
+				
+			--function mod_spring(beat,strength,num,mod,pn)
+				--like mod_wiggle, but springier
+			
+			--function mod_springt(time,strength,dur,mod,pn)
+				--time-based per-frame alternating mod that decreases based on how much time is left.
+					--think doorstopper
+			
+			--function mod_springt2(time,strength,dur,mod,pn)
+				--time-based per-frame alternating mod
+			
+			--function mod_spring_adjustable(beat,strength,num,period,mod,pn, first)
+				--it's not very good
+			
+			--function mod_beat(beat,strength,pn)
+				--turns on beat for the beat specified, at the desired strength	
+			
+			--function switcheroo_add(beat,which,speed,len,pn)
+				--adds a column swap at the desired beat
+			--[[	switcheroos = {normal = {0,0}, ldur = {0,0}, reset = {0,0},
+					flip = {100,0}, rudl = {100,0}, invert = {0,100}, dlru = {0,100},
+					ludr = {25,-75}, rdul = {75,75}, drlu = {25,125}, ulrd = {75,-125}, urld = {100,-100}}
+			]]
+			
+			--function mod_sugarkiller(beat,duration,speed,minstealth,maxstealth,pn)
+				--portable version of the effect from sugarkill X
+			
+			--function mod_bounce(beat,length,start,apex,mod,ease_type,pn)
+			--function func_bounce(beat,length,start,apex,function,ease_type)
+				--eases out from start to apex, then eases back in from apex to start
+				--ease_type should be a string, i.e. 'Quad', 'Cubic', 'Circ'
+			
+			
+			
+			--function modulo(a, b)
+				--returns the remainder when a is divided by b, works properly with negatives unlike math.mod
+			
+			--function randomXD(t)
+				--returns a pseudo-random number between 0 and 1 seeded based on the given argument
+				--returns 0.5 if t is 0 (useful sometimes!)
+				
+			---------------------------------------------------------
+			--------END DOCUMENTATION--------------------------------
+			---------------------------------------------------------
+			
+			local linear, inQuad, outQuad, inOutQuad, outInQuad, inCubic, outCubic, inOutCubic, outInCubic, inQuart, outQuart, inOutQuart, outInQuart, inQuint, outQuint, inOutQuint, outInQuint, inSine, outSine, inOutSine, outInSine, inExpo, outExpo, inOutExpo, outInExpo, inCirc, outCirc, inOutCirc, outInCirc, inElastic, outElastic, inOutElastic, outInElastic, inBack, outBack, inOutBack, outInBack, inBounce, outBounce, inOutBounce, outInBounce = ease.linear, ease.inQuad, ease.outQuad, ease.inOutQuad, ease.outInQuad, ease.inCubic, ease.outCubic, ease.inOutCubic, ease.outInCubic, ease.inQuart, ease.outQuart, ease.inOutQuart, ease.outInQuart, ease.inQuint, ease.outQuint, ease.inOutQuint, ease.outInQuint, ease.inSine, ease.outSine, ease.inOutSine, ease.outInSine, ease.inExpo, ease.outExpo, ease.inOutExpo, ease.outInExpo, ease.inCirc, ease.outCirc, ease.inOutCirc, ease.outInCirc, ease.inElastic, ease.outElastic, ease.inOutElastic, ease.outInElastic, ease.inBack, ease.outBack, ease.inOutBack, ease.outInBack, ease.inBounce, ease.outBounce, ease.inOutBounce, ease.outInBounce
+			
+			init_modsp1 = '';
+			init_modsp2 = '';
+			
+			mod_plr = {};
+			
+			mod_firstSeenBeat = GAMESTATE:GetSongBeat(); --necessary to prevent long freezes
+			
+			
+---------------------------------------------------------------------------------------
+----------------------Begin tables 'n stuff--------------------------------------------
+---------------------------------------------------------------------------------------
+
+			--beat based mods
+			--{beat_start, beat_end, mods, len_or_end, player_number}
+			mods = {
+				{0,9999,'*2 2x, *10000 overhead','end'},
+			}
+			
+			--beat-based ease mods
+			--{beat_start, beat_end, mod_start, mod_end, mod/function, len_or_end, ease_type, player_number, sustainbeats, optional_param1, optional_param2}
+			--valid ease types are:
+				--linear
+				--inQuad    outQuad    inOutQuad    outInQuad
+				--inCubic   outCubic   inOutCubic   outInCubic
+				--inQuart   outQuart   inOutQuart   outInQuart
+				--inQuint   outQuint   inOutQuint   outInQuint
+				--inSine    outSine    inOutSine    outInSine
+				--inExpo    outExpo    inOutExpo    outInExpo
+				--inCirc    outCirc    inOutCirc    outInCirc
+				--inElastic outElastic inOutElastic outInElastic    --can take 2 optional parameters - amplitude & period
+				--inBack    outBack    inOutBack    outInBack       --can take 1 optional parameter  - spring amount
+				--inBounce  outBounce  inOutBounce  outInBounce
+				
+			mods_ease = {
+				-- EXAMPLE TWEEN: from beat 0 to 4, make tipsy go from 200 to 0 with the inOutBack tween
+				--{0, 4, 200, 0, 'tipsy', 'len', inOutBack},
+				
+				-- EXAMPLE TWEEN: from beat 4 to 8, rotate topscreen from 360 to 0 with the outBack tween
+				--{4, 4, 360, 0, function(a) SCREENMAN:GetTopScreen():rotationz(a) end, 'len', outBack},
+			}
+			
+			--time based mods
+			mod_time = 0;
+			--{time_start, time_end, mods, len_or_end, player_number}
+			mods2 = {
+			}
+			
+			-- you can now write perframe stuff without having to scroll down!
+			-- {beat_start,beat_end,function(beat)}
+			mod_perframes = {
+				--{18,24,function(beat)
+					-- do stuff every frame from beat 18-24
+					-- print(beat)
+				--end},
+			}
+			
+			
+			--this is both a message broadcaster and a function runner
+			--if you put {beat,'String'}, then 'String' is broadcast as a message on that beat
+			--if you put {beat,function() somecode end}, then function() is run at that beat
+			--see example on beat 0
+			
+			curaction = 1;
+			--{beat,thing,persists}
+			mod_actions = {
+				
+			}
+			
+---------------------------------------------------------------------------------------
+----------------------Sort the actions table-------------------------------------------
+---------------------------------------------------------------------------------------
+			
+			function modtable_compare(a,b)
+				return a[1] < b[1]
+			end
+			
+			if table.getn(mod_actions) > 1 then
+				table.sort(mod_actions, modtable_compare)
+			end
+			
+			self:luaeffect('Update');
+		end"
+		
+		UpdateCommand="%function(self)
+			local beat = GAMESTATE:GetSongBeat()
+			
+			if beat>=0 and not checked then
+					local ThingsToGrab = {'BPMDisplay','LifeFrame','ScoreFrame','Lyrics','SongBackground','SongForeground','Overlay','Underlay'}
+					local ThingsToHide = {'BPMDisplay','LifeFrame','ScoreFrame','Overlay','Underlay'}
+					for pn=1,2 do
+						_G['P'..pn] = SCREENMAN:GetTopScreen():GetChild('PlayerP'..pn) or nil;
+						if _G['P'..pn] then
+							table.insert(mod_plr, _G['P'..pn])
+							_G['jud'..pn]=_G['P'..pn]:GetChild('Judgment');
+							_G['com'..pn]=_G['P'..pn]:GetChild('Combo');
+							_G['jud'..pn]:hidden(1)
+							_G['com'..pn]:hidden(1)
+						end
+						table.insert(ThingsToGrab,'LifeP'..pn); table.insert(ThingsToGrab,'ScoreP'..pn);
+						table.insert(ThingsToHide,'LifeP'..pn); table.insert(ThingsToHide,'ScoreP'..pn);
+					end	
+					for i,v in ipairs(ThingsToGrab) do _G[v] = SCREENMAN:GetTopScreen():GetChild(v) or nil end	
+					for i,v in ipairs(ThingsToHide) do if _G[v] then _G[v]:hidden(1) end end
+				checked = true;
+			end
+			
+---------------------------------------------------------------------------------------
+----------------------Begin table handlers---------------------------------------------
+---------------------------------------------------------------------------------------
+			
+			disable = false;
+			if disable ~= true and checked then
+				if beat > mod_firstSeenBeat+0.1 then -- performance coding!! --
+				
+					-----------------------
+					-- Player mod resets --
+					-----------------------
+					for i=1,2 do
+						GAMESTATE:ApplyGameCommand('mod,clearall',i)
+						if _G['init_modsp'..i] then 
+							 GAMESTATE:ApplyGameCommand('mod,'.._G['init_modsp'..i],i)
+						end
+					end
+					
+					------------------------------------------------------------------------------
+					-- custom mod reader by TaroNuke edited by WinDEU and re-stolen by TaroNuke --
+					------------------------------------------------------------------------------
+					for i,v in pairs(mods) do
+						if v and table.getn(v) > 3 and v[1] and v[2] and v[3] and v[4] then
+							if beat >=v[1] then
+								if (v[4] == 'len' and beat <=v[1]+v[2]) or (v[4] == 'end' and beat <=v[2]) then
+									if table.getn(v) == 5 then
+										GAMESTATE:ApplyGameCommand('mod,'..v[3],v[5]);
+									else
+										GAMESTATE:ApplyGameCommand('mod,'..v[3]);
+									end
+								end
+							end
+						else
+							v[1] = 0;
+							v[2] = 0;
+							v[3] = '';
+							v[4] = 'error';
+							SCREENMAN:SystemMessage('Bad mod in beat-based table (line '..i..')');
+						end
+					end
+				
+					-----------------------------------------------------------------------------------------------------
+					-- WinDEU's time-based len/end version of the #swag custom mod reader #teamproofofconcept (c) 2015 --
+					-----------------------------------------------------------------------------------------------------
+					for i,v in pairs(mods2) do
+						if v and table.getn(v) > 3 and v[1] and v[2] and v[3] and v[4] then
+							if mod_time >=v[1] then
+								if (v[4] == 'len' and mod_time <=v[1]+v[2]) or (v[4] == 'end' and mod_time <=v[2]) then
+									if table.getn(v) == 5 then
+										GAMESTATE:ApplyGameCommand('mod,'..v[3],v[5]);
+									else
+										GAMESTATE:ApplyGameCommand('mod,'..v[3]);
+									end
+								end
+							end
+						else
+							v[1] = 0;
+							v[2] = 0;
+							v[3] = 'error';
+							v[4] = 'error';
+							SCREENMAN:SystemMessage('Bad mod in time-based table (line '..i..')');
+						end
+					end
+				
+					---------------------------------------
+					-- Ease table (includes func_ease) --
+					---------------------------------------
+					for i,v in pairs(mods_ease) do
+						if v and table.getn(v) > 6 and v[1] and v[2] and v[3] and v[4] and v[5] and v[6] and v[7] then
+							if beat >=v[1] then
+								if (v[6] == 'len' and beat <=v[1]+v[2]) or (v[6] == 'end' and beat <=v[2]) then
+									local strength = v[7](beat - v[1], v[3], v[4] - v[3], v[6] == 'end' and v[2] - v[1] or v[2], v[10], v[11])
+									if type(v[5]) == 'string' then
+										local modstr = v[5] == 'xmod' and strength..'x' or (v[5] == 'cmod' and 'C'..strength or strength..' '..v[5])
+										GAMESTATE:ApplyGameCommand('mod,*9999 '..modstr,v[8]);
+									elseif type(v[5]) == 'function' then
+										v[5](strength)
+									end
+								elseif (v[9] and ((v[6] == 'len' and beat <=v[1]+v[2]+v[9]) or (v[6] == 'end' and beat <=v[9]))) then
+									if type(v[5]) == 'string' then
+										local modstr = v[5] == 'xmod' and v[4]..'x' or (v[5] == 'cmod' and 'C'..v[4] or v[4]..' '..v[5])
+										GAMESTATE:ApplyGameCommand('mod,*9999 '..modstr,v[8]);
+									elseif type(v[5]) == 'function' then
+										v[5](v[4])
+									end
+								end
+							end
+						else
+							SCREENMAN:SystemMessage('Ease Error! (line '..i..' | beat: '.. v[1] .. ' | mod: '.. v[5] ..')');
+						end
+					end
+				
+					---------------------
+					-- Perframe reader --
+					---------------------
+					if table.getn(mod_perframes)>0 then
+						for i=1,table.getn(mod_perframes) do
+							local a = mod_perframes[i]
+							if beat > a[1] and beat < a[2] then
+								a[3](beat);
+							end
+						end
+					end
+				
+					---------------------------------------
+					-- Actions table --
+					---------------------------------------
+					while curaction<=table.getn(mod_actions) and GAMESTATE:GetSongBeat()>=mod_actions[curaction][1] do
+						if mod_actions[curaction][3] or GAMESTATE:GetSongBeat() < mod_actions[curaction][1]+2 then
+							if type(mod_actions[curaction][2]) == 'function' then
+								mod_actions[curaction][2]()
+							elseif type(mod_actions[curaction][2]) == 'string' then
+								MESSAGEMAN:Broadcast(mod_actions[curaction][2]);
+							end
+						end
+						curaction = curaction+1;
+					end
+				end
+			end
+---------------------------------------------------------------------------------------
+----------------------END DON'T TOUCH IT KIDDO-----------------------------------------
+---------------------------------------------------------------------------------------
+			
+		end"
+		
+	/>
+	
+	<!--This is for the time based mod reader-->
+	<BitmapText
+		Font="Common Normal"
+		Text="test"
+		OnCommand="x,SCREEN_CENTER_X;y,SCREEN_CENTER_Y;effectclock,music;playcommand,SetTime;hidden,1"
+		SetTimeCommand="%function(self) self:settext(self:GetSecsIntoEffect()); mod_time = tonumber(self:GetText()); self:sleep(0.02); self:queuecommand('SetTime'); end"
+	/>
+	
+</children></ActorFrame>
