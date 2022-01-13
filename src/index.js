@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const path = require('path/posix')
 const prompts = require('prompts')
 const minimist = require('minimist')
