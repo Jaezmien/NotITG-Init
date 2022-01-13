@@ -6,6 +6,7 @@
 	"repository": "github:jaezmien/NotITG-Init",
 	"main": "src/index.js",
 	"files": [
+		"assets/**/*",
 		"src/**/*"
 	],
 	"license": "MIT",
