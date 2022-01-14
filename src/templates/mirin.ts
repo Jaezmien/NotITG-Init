@@ -1,16 +1,16 @@
-const prompts = require('prompts')
-const gitly = require('gitly').default
-const path = require('path/posix')
-const fs = require('fs')
-const { gray, lightGray, green, red, yellow, blue, magenta, bold } = require('kolorist')
-const { BGAnimation } = require('../libs/Simfile')
+import fs from 'fs'
+import gitly from 'gitly'
+import { green } from 'kolorist'
+import path from 'path/posix'
+import prompts from 'prompts'
+import { ISetting } from '../globals'
+import { BGAnimation } from '../libs/Simfile'
 
 const Name = 'Mirin'
 
-async function LoadAsnyc(settings) {
-	let targetDirectory = settings.target
-	let song = settings.song
-	let songFile = settings.songFile
+async function Load(settings: ISetting) {
+	const { target: targetDirectory, song, songFile } = settings
+	if (!song) throw Error('Song not found')
 
 	console.log('🔃 Downloading and extracting template...')
 	await gitly('https://github.com/XeroOl/notitg-mirin', targetDirectory, {
@@ -70,9 +70,6 @@ async function LoadAsnyc(settings) {
 	console.log(green('✅ Template Initialized!'))
 
 	console.log('To set-up your mods, please see: ' + green('lua/mods.xml'))
-}
-function Load(settings) {
-	LoadAsnyc(settings)
 }
 
 module.exports = { Name, Load }

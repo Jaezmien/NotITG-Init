@@ -1,14 +1,13 @@
-const path = require('path/posix')
-const fs = require('fs')
-const prompts = require('prompts')
-const { gray, lightGray, green, red, yellow, blue, magenta, bold } = require('kolorist')
-const { BGAnimation } = require('../libs/Simfile')
-const { ASSETS_DIRECTORY, recursive_copy } = require('../globals')
+import fs from 'fs'
+import { green } from 'kolorist'
+import path from 'path/posix'
+import prompts from 'prompts'
+import { ASSETS_DIRECTORY, ISetting, recursive_copy } from '../globals'
+import { BGAnimation } from '../libs/Simfile'
 
-async function LoadAsync(settings) {
-	let targetDirectory = settings.target
-	let song = settings.song
-	let songFile = settings.songFile
+async function Load(settings: ISetting) {
+	const { target: targetDirectory, song, songFile } = settings
+	if (!song) throw Error('Song not found')
 
 	if (!fs.existsSync(path.join(targetDirectory, 'fg'))) {
 		fs.mkdirSync(path.join(targetDirectory, 'fg'))
@@ -43,9 +42,6 @@ async function LoadAsync(settings) {
 	console.log(green('✅ Template Initialized!'))
 
 	console.log('To set-up your mods, please see: ' + green('fg/default.xml'))
-}
-function Load(settings) {
-	LoadAsync(settings)
 }
 
 const Name = 'Template 1'

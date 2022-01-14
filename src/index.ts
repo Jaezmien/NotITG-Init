@@ -1,24 +1,24 @@
 #!/usr/bin/env node
-const path = require('path/posix')
-const prompts = require('prompts')
-const minimist = require('minimist')
-const fs = require('fs')
-const { gray, lightGray, green, red, yellow, blue, magenta, bold } = require('kolorist')
-const { Song } = require('./libs/Simfile')
-const { ASSETS_DIRECTORY, ROOT_DIRECTORY } = require('./globals')
+import path from 'path/posix'
+import prompts from 'prompts'
+import minimist from 'minimist'
+import fs from 'fs'
+import { green, red, yellow, blue, magenta, bold } from 'kolorist'
+import { Song } from './libs/Simfile'
+import { ASSETS_DIRECTORY, ISetting } from './globals'
 
 const cwd = process.cwd()
 const args = minimist(process.argv.slice(2), { string: ['_'] })
 
-if (args.cleanGitlyCache) {
+if (args.force) {
 	const os = require('os')
-	console.log(yellow('Cleaning gitly cache...'))
+	console.log(yellow('Cleaning cache...'))
 	fs.rmSync(path.join(os.homedir(), '.gitly'), { recursive: true })
 	console.log(green('Done!'))
 	process.exit(0)
 }
 
-function rainbow(str) {
+function rainbow(str: string) {
 	const guide = [red, yellow, green, blue, magenta]
 	return str
 		.split('')
@@ -31,7 +31,7 @@ function rainbow(str) {
 
 console.log(`⬅ ${rainbow('NotITG Template Initializer')} ➡`)
 
-const TEMPLATES = {}
+const TEMPLATES: any = {}
 fs.readdirSync(path.join(__dirname, 'templates')).forEach((t) => {
 	const template = require(path.join(__dirname, 'templates', t))
 	TEMPLATES[template.Name] = template
@@ -131,16 +131,17 @@ async function main() {
 			return
 		}
 	} else {
-		songFile = path.join(
-			targetDirectory,
-			fs.readdirSync(targetDirectory).find((x) => x.endsWith('.sm'))
-		)
+		songFile = path.join(targetDirectory, fs.readdirSync(targetDirectory).find((x) => x.endsWith('.sm'))!)
 		song = new Song(fs.readFileSync(songFile, 'utf-8').split('\n'))
 		console.log('✅ Got simfile! - ' + song.MainTitle)
 	}
 
 	let template = ''
-	let settings = {}
+	let settings: ISetting = {
+		target: '',
+		song: null,
+		songFile: '',
+	}
 	try {
 		const response = await prompts(
 			{
@@ -171,10 +172,12 @@ async function main() {
 	settings.songFile = songFile
 
 	try {
-		TEMPLATES[template].Load(settings)
-	} catch (e) {
-		console.log(red('⚠ An error has occured while trying to initialize the template!'))
-		console.error(e.message)
+		await TEMPLATES[template].Load(settings)
+	} catch (e: unknown) {
+		if (e instanceof Error) {
+			console.log(red('⚠ An error has occured while trying to initialize the template!'))
+			console.error(e.message)
+		}
 	}
 }
 
