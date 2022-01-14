@@ -76,6 +76,21 @@ async function Load(settings: ISetting) {
 			)
 		).compat
 
+		if (!compatibility.includes('outfox')) {
+			console.log('🚮 Removing OutFox files...')
+			for (const file of [
+				'fg/fg.lua',
+				'bg/bg.lua',
+				'bg/itg/default.lua',
+				'template/fg/default.lua',
+				'template/bg/default.lua',
+				'template/init.lua',
+			]) {
+				const filePath = path.join(targetDirectory, file)
+				if (fs.existsSync(filePath)) fs.rmSync(filePath)
+			}
+		}
+
 		const response = await prompts(
 			{
 				type: 'select',
