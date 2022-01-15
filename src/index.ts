@@ -51,9 +51,6 @@ async function main() {
 					type: 'select',
 					name: 'existing',
 					message: 'Directory contains files',
-					// active: 'yes',
-					// inactive: 'no',
-					// initial: true,
 					choices: [
 						{ title: 'Continue', description: 'Continue on initializing', value: 'ignore' },
 						{ title: 'Clear', description: 'Clear all files first', value: 'clear' },
@@ -121,8 +118,13 @@ async function main() {
 			songFile = targetDirectory + '/song.sm'
 			song = new Song(fs.readFileSync(path.join(ASSETS_DIRECTORY, 'song.sm'), 'utf-8').split('\n'))
 
-			fs.copyFileSync(path.join(ASSETS_DIRECTORY, 'song.ogg'), path.join(targetDirectory, 'song.ogg'))
-			song.MusicFile = 'song.ogg'
+			if (fs.readdirSync(targetDirectory).some((x) => x.endsWith('.ogg'))) {
+				song.MusicFile = fs.readdirSync(targetDirectory).find((x) => x.endsWith('.ogg'))!
+				console.log('🔍 Found ogg!')
+			} else {
+				fs.copyFileSync(path.join(ASSETS_DIRECTORY, 'song.ogg'), path.join(targetDirectory, 'song.ogg'))
+				song.MusicFile = 'song.ogg'
+			}
 			console.log('✅ Created empty simfile!')
 		} catch (e) {
 			console.error(e)
