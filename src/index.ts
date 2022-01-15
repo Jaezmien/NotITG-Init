@@ -10,12 +10,10 @@ import { ASSETS_DIRECTORY, ISetting } from './globals'
 const cwd = process.cwd()
 const args = minimist(process.argv.slice(2), { string: ['_'] })
 
-if (args.force) {
+if (args.clean) {
 	const os = require('os')
-	console.log(yellow('Cleaning cache...'))
-	fs.rmSync(path.join(os.homedir(), '.gitly'), { recursive: true })
-	console.log(green('Done!'))
-	process.exit(0)
+	console.log('🚮 ' + yellow('Cleaning cache...'))
+	fs.rmSync(path.join(os.homedir(), '.notitg-init'), { recursive: true })
 }
 
 function rainbow(str: string) {
