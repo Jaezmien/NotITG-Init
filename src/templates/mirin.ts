@@ -1,5 +1,5 @@
 import fs from 'fs'
-import gitly from 'gitly'
+import download from '../libs/repo'
 import { green } from 'kolorist'
 import path from 'path/posix'
 import prompts from 'prompts'
@@ -13,12 +13,8 @@ async function Load(settings: ISetting) {
 	if (!song) throw Error('Song not found')
 
 	console.log('🔃 Downloading and extracting template...')
-	await gitly('https://github.com/XeroOl/notitg-mirin', targetDirectory, {
-		extract: {
-			filter(path) {
-				return !['.sm', '.ogg', '.md'].some((ext) => path.endsWith(ext))
-			},
-		},
+	await download('XeroOl/notitg-mirin', targetDirectory, (path) => {
+		return !['.sm', '.ogg', '.md'].some((ext) => path.endsWith(ext))
 	})
 
 	const installPlugins = await prompts({
@@ -31,7 +27,7 @@ async function Load(settings: ISetting) {
 	})
 	if (installPlugins.plugins) {
 		console.log('🔃 Downloading and extracting plugins...')
-		await gitly('https://github.com/XeroOl/notitg-mirin-plugins', path.join(targetDirectory, 'plugins'), {})
+		await download('XeroOl/notitg-mirin-plugins', path.join(targetDirectory, 'plugins'))
 		const pluginsList = fs.readFileSync(path.join(targetDirectory, 'plugins', 'PLUGINLIST.txt'), 'utf-8')
 
 		const response = await prompts({

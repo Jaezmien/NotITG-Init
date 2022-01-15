@@ -1,6 +1,6 @@
 {
 	"name": "notitg-init",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"description": "NotITG Template Initializer",
 	"author": "Jaezmien Naejara",
 	"repository": "github:jaezmien/NotITG-Init",
@@ -18,15 +18,17 @@
 		"start": "node ./dist/index.js"
 	},
 	"dependencies": {
-		"gitly": "^2.1.5",
+		"axios": "^0.24.0",
 		"kolorist": "^1.5.1",
 		"minimist": "^1.2.5",
-		"prompts": "^2.4.2"
+		"prompts": "^2.4.2",
+		"tar": "^6.1.11"
 	},
 	"devDependencies": {
 		"@types/minimist": "^1.2.2",
 		"@types/node": "^17.0.8",
 		"@types/prompts": "^2.0.14",
+		"@types/tar": "^6.1.1",
 		"eslint": "^8.6.0",
 		"typescript": "^4.5.4"
 	},

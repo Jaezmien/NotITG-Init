@@ -1,5 +1,5 @@
 import fs from 'fs'
-import gitly from 'gitly'
+import download from '../libs/repo'
 import { green, yellow } from 'kolorist'
 import path from 'path/posix'
 import prompts from 'prompts'
@@ -13,16 +13,12 @@ async function Load(settings: ISetting) {
 	if (!song) throw Error('Song not found')
 
 	console.log('🔃 Downloading and extracting base template...')
-	await gitly('https://github.com/Jaezmien/NotITG-Moo', targetDirectory, {
-		extract: {
-			filter(path) {
-				return !['.md', '.txt'].some((ext) => path.endsWith(ext))
-			},
-		},
+	await download('Jaezmien/NotITG-Moo', targetDirectory, (path) => {
+		return !['.md', '.txt'].some((ext) => path.endsWith(ext))
 	})
 
 	console.log('🔃 Downloading and loading addons...')
-	await gitly('https://github.com/Jaezmien/NotITG-Moo-Addons#main', path.join(targetDirectory, '.temp'), {})
+	await download('Jaezmien/NotITG-Moo-Addons#main', path.join(targetDirectory, '.temp'))
 
 	let modTemplate = false
 	const response = await prompts(
@@ -46,12 +42,8 @@ async function Load(settings: ISetting) {
 	let compatibility: string[] = []
 	if (modTemplate) {
 		console.log('🔃 Downloading and extracting mod template...')
-		await gitly('https://github.com/Jaezmien/NotITG-Moo-Mods#main', targetDirectory, {
-			extract: {
-				filter(path) {
-					return !['.ogg', '.sm'].some((ext) => path.endsWith(ext))
-				},
-			},
+		await download('Jaezmien/NotITG-Moo-Mods#main', targetDirectory, (path) => {
+			return !['.ogg', '.sm'].some((ext) => path.endsWith(ext))
 		})
 
 		compatibility = (
@@ -162,12 +154,8 @@ async function Load(settings: ISetting) {
 		}
 	} else {
 		console.log('🔃 Downloading and extracting engine template...')
-		await gitly('https://github.com/Jaezmien/NotITG-Moo-Engine#main', targetDirectory, {
-			extract: {
-				filter(path) {
-					return !['.ogg', '.sm'].some((ext) => path.endsWith(ext))
-				},
-			},
+		await download('Jaezmien/NotITG-Moo-Engine#main', targetDirectory, (path) => {
+			return !['.ogg', '.sm'].some((ext) => path.endsWith(ext))
 		})
 	}
 
